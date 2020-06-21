@@ -40,8 +40,14 @@ Once activated, `windu-transient-mode` remains active until a non-nudge command 
 | -------- | -------- | ------ |
 | `3` | `'windu-split-window-right` | split side-by-side and order each window to width `fill-column` by moving its right edge |
 | `#` | `'windu-split-window-left` | split side-by-side and order each window to width `fill-column` by moving its left edge |
+| `+` | `'windu-fill-many-windows` | set as window widths to `fill-column` as possible, starting from the left |
 
 The split commands mimic the Emacs built-in `C-x 3` keybinding, but order the split windows to have width `fill-column` (or the global override `windu-fill-column`, if set) after splitting. If there is insufficient space available on the requested left or right side, the split fails with an error message.
+
+You can remap the built-in `C-x 3` and `C-x +` keybindings to their windu equivalents globally in your `.emacs` config file:
+
+    (global-set-key (kbd "C-x 3") 'windu-split-window-right)
+    (global-set-key (kbd "C-x +") 'windu-fill-many-windows)
 
 ### Informational
 | sequence | function | effect |
@@ -50,7 +56,7 @@ The split commands mimic the Emacs built-in `C-x 3` keybinding, but order the sp
 
 ## Installation
 
-Place the library in your emacs load path (often somewhere under `~/.emacs.d/`) and then enable it in your `.emacs` config:
+Place `windu.el` in your emacs load path (often somewhere under `~/.emacs.d/`) and then enable it in your `.emacs` config:
 
     (require 'windu)
     (windu-default-keybindings)
