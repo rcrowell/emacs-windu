@@ -54,8 +54,9 @@
             (define-key map (kbd "f") 'windu-fill-column-right)
             (define-key map (kbd "F") 'windu-fill-column-left)
             (define-key map (kbd "+") 'windu-fill-many-windows)
-            (define-key map (kbd "3") 'windu-split-window-right)
-            (define-key map (kbd "#") 'windu-split-window-left)
+            (define-key map (kbd "3") 'windu-split-window-best-effort)
+            (define-key map (kbd "r") 'windu-split-window-right)
+            (define-key map (kbd "l") 'windu-split-window-left)
             map)
   (add-hook 'post-command-hook 'windu--post-command-handler))
 
@@ -66,8 +67,12 @@
                     (eq (string-match "windu-nudge-" this-command-name) 0)))
            (windu-transient-abort)))))
 
-(defun windu-fill-width (&optional width)
-  (+ (or width windu-fill-column fill-column 79) windu-fill-column-padding))
+(defun windu-fill-width (&optional window width)
+  (let ((local-fill-column (buffer-local-value 'fill-column (window-buffer window))))
+    (cond (width
+           width)
+          (t
+           (+ (or windu-fill-column local-fill-column 79) windu-fill-column-padding)))))
 
 (defun windu-do-nudge-left (&optional delta window)
   "Resize WINDOW by DELTA via moving its left edge."
@@ -125,10 +130,11 @@
   (let ((delta (- height (window-total-height window))))
     (windu-do-nudge-bottom delta window)))
 
-(defun windu-fill-windows-right(width &optional window)
+(defun windu-fill-windows-right(&optional window width)
   (cond ((not (null window))
-         (windu-do-set-width-right width window)
-         (windu-fill-windows-right width (window-in-direction 'right window)))))
+         (ignore-errors
+           (windu-do-set-width-right (windu-fill-width window width) window)
+           (windu-fill-windows-right (window-in-direction 'right window) width)))))
 
 (defun windu-echo-sizes (&optional window other-window dir)
   "Message the size of 1 or 2 windows, WINDOW and OTHER-WINDOW."
@@ -209,13 +215,13 @@
 (defun windu-set-width-left (width)
   "Set current window width to WIDTH by moving its left edge."
   (interactive "nSet width: ")
-  (windu-do-set-width-left width)
+  (windu-do-set-width-left (windu-fill-width nil width))
   (windu-echo-size))
 
 (defun windu-set-width-right (width)
   "Set current window width to WIDTH by moving its right edge."
   (interactive "nSet width: ")
-  (windu-do-set-width-right (windu-fill-width width))
+  (windu-do-set-width-right (windu-fill-width nil width))
   (windu-echo-size))
 
 (defun windu-fill-column-left ()
@@ -234,7 +240,7 @@
   "Set every window to `fill-column` starting with the window at (0, 0)."
   (interactive)
   (balance-windows)
-  (windu-fill-windows-right (windu-fill-width) (window-at 0 0)))
+  (windu-fill-windows-right (window-at 0 0)))
 
 (defun windu-split-window-left ()
   "Split current window side-by-side, moving the left edge as needed.
@@ -257,6 +263,21 @@ After the split, both windows aim to have `windu-fill-column` width."
            (windu-do-set-width-right (* 2 width))))
     (let ((new-window (split-window nil width 'right)))
       (windu-echo-sizes nil new-window 'right))))
+
+(defun windu-split-window-best-effort ()
+  "Things."
+  (interactive)
+  (let ((width (windu-fill-width))
+        (other-window (window-in-direction 'right)))
+    (cond ((not (null other-window))
+           (windu-do-set-width-right (* 2 width))))
+    (cond ((< (window-total-width) (* 2 width))
+           (let ((new-window (split-window nil nil 'right)))
+             (windu-fill-column-right)
+             (windu-echo-sizes nil new-window 'right)))
+          (t
+           (let ((new-window (split-window nil width 'right)))
+             (windu-echo-sizes nil new-window 'right))))))
 
 (defun windu-default-keybindings ()
   "Set up keybinding for `windu-transient-mode`."
