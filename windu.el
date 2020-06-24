@@ -39,13 +39,13 @@
   :lighter " windu"
   :keymap (let ((map (make-sparse-keymap)))
             ;; Nudges
-            (define-key map (kbd "<C-left>") 'windu-nudge-out-left)
+            (define-key map (kbd "<C-left>") 'windu-nudge-in-right)
             (define-key map (kbd "<C-right>") 'windu-nudge-out-right)
-            (define-key map (kbd "<C-up>") 'windu-nudge-out-top)
+            (define-key map (kbd "<C-up>") 'windu-nudge-in-bottom)
             (define-key map (kbd "<C-down>") 'windu-nudge-out-bottom)
-            (define-key map (kbd "<C-S-left>") 'windu-nudge-in-right)
+            (define-key map (kbd "<C-S-left>") 'windu-nudge-out-left)
             (define-key map (kbd "<C-S-right>") 'windu-nudge-in-left)
-            (define-key map (kbd "<C-S-up>") 'windu-nudge-in-bottom)
+            (define-key map (kbd "<C-S-up>") 'windu-nudge-out-top)
             (define-key map (kbd "<C-S-down>") 'windu-nudge-in-top)
             ;; Orders
             (define-key map (kbd "f") 'windu-order-fill-best-effort)

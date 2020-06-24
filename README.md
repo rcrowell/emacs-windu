@@ -7,19 +7,19 @@ Windu provides a transient minor-mode for quick fine-tuning of window sizes in E
 ### Nudges (incremental window resizing)
 | sequence | function | effect |
 | -------- | -------- | ------ |
-| `<C-left>`  | `'windu-nudge-out-left` | move window's left edge to increase its width by 1 |
+| `<C-left>`  | `'windu-nudge-in-right` | move window's right edge to decrease its width by 1 |
 | `<C-right>` | `'windu-nudge-out-right` | move window's right edge to increase its width by 1 |
-| `<C-up>` | `'windu-nudge-out-top` | move window's top edge to increase its height by 1 |
+| `<C-up>` | `'windu-nudge-in-bottom` | move window's bottom edge to decrease its height by 1 |
 | `<C-down>` | `'windu-nudge-out-bottom` | move window's bottom edge to increase its height by 1 |
-| `<C-S-left>`  | `'windu-nudge-in-left` | move window's left edge to decrease its width by 1 |
-| `<C-S-right>` | `'windu-nudge-in-right` | move window's right edge to decrease its width by 1 |
-| `<C-S-up>` | `'windu-nudge-in-top` | move window's top edge to decrease its height by 1 |
-| `<C-S-down>` | `'windu-nudge-in-bottom` | move window's bottom edge to decrease its height by 1 |
+| `<C-S-left>`  | `'windu-nudge-out-left` | move window's left edge to increase its width by 1 |
+| `<C-S-right>` | `'windu-nudge-in-left` | move window's left edge to decrease its width by 1 |
+| `<C-S-up>` | `'windu-nudge-out-top` | move window's top edge to increase its height by 1 |
+| `<C-S-down>` | `'windu-nudge-in-top` | move window's top edge to decrease its height by 1 |
 
 Once activated, `windu-transient-mode` remains active until a non-nudge command is encountered.  This permits easy fine-tuning via repeated invocations of a nudge command without requiring the lengthy `C-x C-m` sequence to be entered before each nudge:
 
 * `C-x C-m <C-right> <C-right> <C-right>` will increase the width of the current window by 3 columns.
-* `C-x C-m <C-right> <C-right> <C-S-left>` will increase the width of the current window by 1 column (first it increases the width by 2, then reduces it by 1).
+* `C-x C-m <C-right> <C-right> <C-left>` will increase the width of the current window by 1 column (first it increases the width by 2, then reduces it by 1).
 
 ### Orders (specific window resizing)
 | sequence | function | effect |
