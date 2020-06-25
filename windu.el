@@ -58,10 +58,19 @@
             (define-key map (kbd "{") 'windu-order-height-bottom)
             (define-key map (kbd "}") 'windu-order-height-top)
             ;; Splits / Group Orders
-            (define-key map (kbd "+") 'windu-order-fill-many-windows)
             (define-key map (kbd "3") 'windu-split-window-best-effort)
             (define-key map (kbd "r") 'windu-split-window-right)
             (define-key map (kbd "l") 'windu-split-window-left)
+            (define-key map (kbd "+") 'windu-order-fill-many-windows)
+            ;; Swaps / Brings
+            (define-key map (kbd ",") 'windu-swap-left)
+            (define-key map (kbd ".") 'windu-swap-right)
+            (define-key map (kbd "<") 'windu-swap-top)
+            (define-key map (kbd ">") 'windu-swap-bottom)
+            (define-key map (kbd "C-,") 'windu-bring-left)
+            (define-key map (kbd "C-.") 'windu-bring-right)
+            (define-key map (kbd "C-<") 'windu-bring-top)
+            (define-key map (kbd "C->") 'windu-bring-bottom)
             ;; Info
             (define-key map (kbd "i") 'windu-echo-size)
             map)
@@ -71,7 +80,8 @@
   "Deactivate `windu-transient-mode` after non-nudge actions."
   (let ((this-command-name (symbol-name this-command)))
     (cond ((not (or (eq 'windu-transient-activate this-command)
-                    (eq (string-match "windu-nudge-" this-command-name) 0)))
+                    (eq (string-match "windu-nudge-" this-command-name) 0)
+                    (eq (string-match "windu-bring-" this-command-name) 0)))
            (windu-transient-abort)))))
 
 (defun windu-fill-width (&optional window width)
@@ -153,6 +163,22 @@
                   (window-total-width window) (window-total-height window)
                   (or (symbol-name dir) "other")
                   (window-total-width other-window) (window-total-height other-window)))))
+
+(defun windu-swap-buffers (other &optional window)
+  "Swap buffers between the OTHER window and WINDOW."
+  (let ((this-buf (window-buffer window))
+        (other-buf (window-buffer other)))
+    (set-window-buffer window other-buf)
+    (set-window-buffer other this-buf)))
+
+(defun windu-swap-buffers-in-direction (direction &optional window)
+  "Swap buffers between the window in DIRECTION and WINDOW."
+  (let ((other-window (window-in-direction direction window)))
+    (cond ((null other-window)
+           (user-error "No window %s of this one" direction))
+          (t
+           (windu-swap-buffers other-window window)
+           other-window))))
 
 ;;; end-user interactive wrapper functions
 
@@ -295,6 +321,46 @@ After the split, both windows aim to have `windu-fill-column` width."
     (let ((new-window (split-window nil nil 'right)))
       (windu-order-width-right width)
       (windu-echo-sizes nil new-window 'right))))
+
+(defun windu-swap-left ()
+  "Swap the buffer in the current window with the one on the left."
+  (interactive)
+  (windu-swap-buffers-in-direction 'left))
+
+(defun windu-swap-right ()
+  "Swap the buffer in the current window with the one on the right."
+  (interactive)
+  (windu-swap-buffers-in-direction 'right))
+
+(defun windu-swap-top ()
+  "Swap the buffer in the current window with the one on the top."
+  (interactive)
+  (windu-swap-buffers-in-direction 'above))
+
+(defun windu-swap-bottom ()
+  "Swap the buffer in the current window with the one on the bottom."
+  (interactive)
+  (windu-swap-buffers-in-direction 'below))
+
+(defun windu-bring-left ()
+  "Select the window on the left, and bring the current buffer along."
+  (interactive)
+  (select-window (windu-swap-buffers-in-direction 'left)))
+
+(defun windu-bring-right ()
+  "Select the window on the right, and bring the current buffer along."
+  (interactive)
+  (select-window (windu-swap-buffers-in-direction 'right)))
+
+(defun windu-bring-top ()
+  "Select the window on the top, and bring the current buffer along."
+  (interactive)
+  (select-window (windu-swap-buffers-in-direction 'above)))
+
+(defun windu-bring-bottom ()
+  "Select the window on the bottom, and bring the current buffer along."
+  (interactive)
+  (select-window (windu-swap-buffers-in-direction 'below)))
 
 (defun windu-setup-keybindings (&optional mode-prefix)
   "Set up keybinding for `windu-transient-mode` on MODE-PREFIX. Defaults to 'C-x C-m'."

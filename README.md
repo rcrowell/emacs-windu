@@ -16,7 +16,7 @@ Windu provides a transient minor-mode for quick fine-tuning of window sizes in E
 | `<C-S-up>` | `'windu-nudge-out-top` | move window's top edge to increase its height by 1 |
 | `<C-S-down>` | `'windu-nudge-in-top` | move window's top edge to decrease its height by 1 |
 
-Once activated, `windu-transient-mode` remains active until a non-nudge command is encountered.  This permits easy fine-tuning via repeated invocations of a nudge command without requiring the lengthy `C-x C-m` sequence to be entered before each nudge:
+Once activated, `windu-transient-mode` remains active until a non-nudge or non-bring command is encountered.  This permits easy fine-tuning via repeated invocations of a nudge command without requiring the lengthy `C-x C-m` sequence to be entered before each nudge:
 
 * `C-x C-m <C-right> <C-right> <C-right>` will increase the width of the current window by 3 columns.
 * `C-x C-m <C-right> <C-right> <C-left>` will increase the width of the current window by 1 column (first it increases the width by 2, then reduces it by 1).
@@ -62,6 +62,45 @@ You can remap the built-in `C-x 3` and `C-x +` keybindings to their windu equiva
 (global-set-key (kbd "C-x +") 'windu-order-fill-many-windows)
 ```
 
+### Swaps
+| sequence | function | effect |
+| -------- | -------- | ------ |
+| `,` | `'windu-swap-left` | move the current window's buffer to the window on the left, and move that window's buffer to the current window |
+| `.` | `'windu-swap-right` | move the current window's buffer to the window on the right, and move that window's buffer to the current window |
+| `<` | `'windu-swap-top` | move the current window's buffer to the window on the top, and move that window's buffer to the current window |
+| `>` | `'windu-swap-bottom` | move the current window's buffer to the window on the bottom, and move that window's buffer to the current window |
+| `C-,` | `'windu-bring-left` | select the window on the left, and bring the current buffer with you |
+| `C-.` | `'windu-bring-right` | select the window on the right, and bring the current buffer with you |
+| `C-<` | `'windu-bring-top` | select the window on the top, and bring the current buffer with you |
+| `C->` | `'windu-bring-bottom` | select the window on the bottom, and bring the current buffer with you |
+
+The `'windu-swap-` commands switch the buffer in the active window with the buffer in a window left, right, above, or below the current window.  Focus remains in the current window.
+
+The `'windu-bring-` commands, on the other hand, switch buffers like `'windu-swap-` but move focus to the other window as well. Multiple bring commands can be chained together without requiring the lengthy `C-x C-m` sequence to be entered before each bring:
+
+* `C-x C-m C->` will result in the simultaneous evaluation of:
+
+        window0.buffer = window1.buffer
+        window1.buffer = window0.buffer
+
+    Additionally, window1 will become the current window.
+* `C-x C-m C-> C->` will result in the simultaneous evaluation of:
+
+        window0.buffer = window1.buffer
+        window1.buffer = window2.buffer
+        window2.buffer = window0.buffer
+
+    Additionally, window2 will become the current window.
+
+You can make the `'windu-bring-` commands available globally through convenient keybindings in your `.emacs` config file:
+
+```elisp
+(global-set-key (kbd "<C-S-left>") 'windu-bring-left)
+(global-set-key (kbd "<C-S-right>") 'windu-bring-right)
+(global-set-key (kbd "<C-S-up>") 'windu-bring-top)
+(global-set-key (kbd "<C-S-down>") 'windu-bring-bottom)
+```
+
 ### Informational
 | sequence | function | effect |
 | -------- | -------- | ------ |
@@ -86,3 +125,35 @@ Alternately, you can customize the windu prefix key:
 ```
 
 Then reload your config via `M-x eval-buffer` or simply restart Emacs :)
+
+### One suggested configuration
+
+In this suggested config:
+
+| sequence | old effect | new effect |
+| -------- | ---------- | ---------- |
+| `C-x C-m` | | temporarily enable the windu keymap |
+| `C-x 3` | `split-window-right` | split side-by-side, and order both windows to width `fill-column` |
+| `C-x +` | `balance-windows` | order as many windows to width `fill-column` as possible |
+| `C-S-<left>` | select `left-word` | select the left window, and bring the current buffer along |
+| `C-S-<right>` | select `right-word` | select the right window, and bring the current buffer along |
+| `C-S-<up>` | select `backward-paragraph` | select the top window, and bring the current buffer along |
+| `C-S-<down>` | select `forward-paragraph` | select the bottom window, and bring the current buffer along |
+
+Place the following in your `.emacs` config file:
+
+```elisp
+;; Use default keybinding "C-x C-m" to activate windu-transient-mode
+(require 'windu)
+(windu-setup-keybindings)
+;; Shadow existing emacs keybindings with their windu equivalents
+;; Replaces default 'split-window-right
+(global-set-key (kbd "C-x 3") 'windu-split-window-best-effort)
+;; Replaces default 'balance-windows
+(global-set-key (kbd "C-x +") 'windu-order-fill-many-windows)
+;; Replaces default text movement/selection 'right-word etc.
+(global-set-key (kbd "<C-S-left>") 'windu-bring-left)
+(global-set-key (kbd "<C-S-right>") 'windu-bring-right)
+(global-set-key (kbd "<C-S-up>") 'windu-bring-top)
+(global-set-key (kbd "<C-S-down>") 'windu-bring-bottom)
+```
