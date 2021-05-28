@@ -58,7 +58,7 @@
             (define-key map (kbd "{") 'windu-order-height-bottom)
             (define-key map (kbd "}") 'windu-order-height-top)
             ;; Splits / Group Orders
-            (define-key map (kbd "3") 'windu-split-window-best-effort)
+            (define-key map (kbd "b") 'windu-split-window-best-effort)
             (define-key map (kbd "r") 'windu-split-window-right)
             (define-key map (kbd "l") 'windu-split-window-left)
             (define-key map (kbd "+") 'windu-order-fill-many-windows)
@@ -71,6 +71,15 @@
             (define-key map (kbd "C-.") 'windu-bring-right)
             (define-key map (kbd "C-<") 'windu-bring-top)
             (define-key map (kbd "C->") 'windu-bring-bottom)
+            ;; Window Configuration
+            (define-key map (kbd "2") 'windu-set-window-configuration-2)
+            (define-key map (kbd "3") 'windu-set-window-configuration-3)
+            (define-key map (kbd "4") 'windu-set-window-configuration-4)
+            (define-key map (kbd "5") 'windu-set-window-configuration-5)
+            (define-key map (kbd "@") 'windu-load-window-configuration-2)
+            (define-key map (kbd "#") 'windu-load-window-configuration-3)
+            (define-key map (kbd "$") 'windu-load-window-configuration-4)
+            (define-key map (kbd "%") 'windu-load-window-configuration-5)
             ;; Info
             (define-key map (kbd "i") 'windu-echo-size)
             map)
@@ -180,11 +189,28 @@
            (windu-swap-buffers other-window window)
            other-window))))
 
-;;; end-user interactive wrapper functions
+;;; window configuration hotkeys
 
+(defvar windu-window-configuration-2 nil)
+(defvar windu-window-configuration-3 nil)
+(defvar windu-window-configuration-4 nil)
+(defvar windu-window-configuration-5 nil)
+
+(defun windu-set-window-configuration(name)
+  "Save the current window configuration into name"
+  (set name (current-window-configuration))
+  (message "Window configuration saved"))
+
+(defun windu-load-window-configuration(name)
+  "Load the window configuration corresponding to name."
+  (if name (progn (set-window-configuration name) (message "Window configuration loaded"))
+    (message "Saved configuration not found")))
+
+;;; end-user interactive wrapper functions
 (defun windu-transient-activate ()
   "Begins a new nudge action."
   (interactive)
+  (message "Entering windu mode")
   (windu-transient-mode 1))
 
 (defun windu-transient-abort ()
@@ -362,10 +388,55 @@ After the split, both windows aim to have `windu-fill-column` width."
   (interactive)
   (select-window (windu-swap-buffers-in-direction 'below)))
 
+;;; window configuration end-user interactive wrapper functions
+(defun windu-set-window-configuration-2 ()
+  "Save the current window configuration to 'windu-window-configuration-2"
+  (interactive)
+  (windu-set-window-configuration 'windu-window-configuration-2))
+
+(defun windu-set-window-configuration-3 ()
+  "Save the current window configuration to 'windu-window-configuration-3"
+  (interactive)
+  (windu-set-window-configuration 'windu-window-configuration-3))
+
+(defun windu-set-window-configuration-4 ()
+  "Save the current window configuration to 'windu-window-configuration-4"
+  (interactive)
+  (windu-set-window-configuration 'windu-window-configuration-4))
+
+(defun windu-set-window-configuration-5 ()
+  "Save the current window configuration to 'windu-window-configuration-5"
+  (interactive)
+  (windu-set-window-configuration 'windu-window-configuration-5))
+
+(defun windu-load-window-configuration-2 ()
+  "Load the window configuration stored in 'windu-window-configuration-2, if one exists"
+  (interactive)
+  (windu-load-window-configuration windu-window-configuration-2)
+  (message "Window configuration loaded"))
+
+(defun windu-load-window-configuration-3 ()
+  "Load the window configuration stored in 'windu-window-configuration-3, if one exists"
+  (interactive)
+  (windu-load-window-configuration windu-window-configuration-3)
+  (message "Window configuration loaded"))
+
+(defun windu-load-window-configuration-4 ()
+  "Load the window configuration stored in 'windu-window-configuration-4, if one exists"
+  (interactive)
+  (windu-load-window-configuration windu-window-configuration-4)
+  (message "Window configuration loaded"))
+
+(defun windu-load-window-configuration-5 ()
+  "Load the window configuration stored in 'windu-window-configuration-5, if one exists"
+  (interactive)
+  (windu-load-window-configuration windu-window-configuration-5)
+  (message "Window configuration loaded"))
+
 (defun windu-setup-keybindings (&optional mode-prefix)
   "Set up keybinding for `windu-transient-mode` on MODE-PREFIX. Defaults to 'C-x C-m'."
   (interactive)
-  (let ((mode-prefix (or mode-prefix (kbd "C-x C-m"))))
+  (let ((mode-prefix (or mode-prefix (kbd "C-x C-x"))))
     (global-set-key mode-prefix 'windu-transient-activate)))
 
 (provide 'windu)
