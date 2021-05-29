@@ -197,7 +197,7 @@
 (defvar windu-window-configuration-5 nil)
 
 (defun windu-set-window-configuration(name)
-  "Save the current window configuration into name"
+  "Save the current window configuration into name."
   (set name (current-window-configuration))
   (message "Window configuration saved"))
 
@@ -390,45 +390,45 @@ After the split, both windows aim to have `windu-fill-column` width."
 
 ;;; window configuration end-user interactive wrapper functions
 (defun windu-set-window-configuration-2 ()
-  "Save the current window configuration to 'windu-window-configuration-2"
+  "Save the current window configuration to 'windu-window-configuration-2."
   (interactive)
   (windu-set-window-configuration 'windu-window-configuration-2))
 
 (defun windu-set-window-configuration-3 ()
-  "Save the current window configuration to 'windu-window-configuration-3"
+  "Save the current window configuration to 'windu-window-configuration-3."
   (interactive)
   (windu-set-window-configuration 'windu-window-configuration-3))
 
 (defun windu-set-window-configuration-4 ()
-  "Save the current window configuration to 'windu-window-configuration-4"
+  "Save the current window configuration to 'windu-window-configuration-4."
   (interactive)
   (windu-set-window-configuration 'windu-window-configuration-4))
 
 (defun windu-set-window-configuration-5 ()
-  "Save the current window configuration to 'windu-window-configuration-5"
+  "Save the current window configuration to 'windu-window-configuration-5."
   (interactive)
   (windu-set-window-configuration 'windu-window-configuration-5))
 
 (defun windu-load-window-configuration-2 ()
-  "Load the window configuration stored in 'windu-window-configuration-2, if one exists"
+  "Load the window configuration stored in 'windu-window-configuration-2, if one exists."
   (interactive)
   (windu-load-window-configuration windu-window-configuration-2)
   (message "Window configuration loaded"))
 
 (defun windu-load-window-configuration-3 ()
-  "Load the window configuration stored in 'windu-window-configuration-3, if one exists"
+  "Load the window configuration stored in 'windu-window-configuration-3, if one exists."
   (interactive)
   (windu-load-window-configuration windu-window-configuration-3)
   (message "Window configuration loaded"))
 
 (defun windu-load-window-configuration-4 ()
-  "Load the window configuration stored in 'windu-window-configuration-4, if one exists"
+  "Load the window configuration stored in 'windu-window-configuration-4, if one exists."
   (interactive)
   (windu-load-window-configuration windu-window-configuration-4)
   (message "Window configuration loaded"))
 
 (defun windu-load-window-configuration-5 ()
-  "Load the window configuration stored in 'windu-window-configuration-5, if one exists"
+  "Load the window configuration stored in 'windu-window-configuration-5, if one exists."
   (interactive)
   (windu-load-window-configuration windu-window-configuration-5)
   (message "Window configuration loaded"))
