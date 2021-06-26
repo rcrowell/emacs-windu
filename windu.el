@@ -196,6 +196,9 @@
 (defvar windu-window-configuration-4 nil)
 (defvar windu-window-configuration-5 nil)
 
+(defvar windu-auto-save-window-configuration-1 nil)
+(defvar windu-auto-save-window-configuration-0 nil)
+
 (defun windu-set-window-configuration(name)
   "Save the current window configuration into name."
   (set name (current-window-configuration))
@@ -432,6 +435,44 @@ After the split, both windows aim to have `windu-fill-column` width."
   (interactive)
   (windu-load-window-configuration windu-window-configuration-5)
   (message "Window configuration loaded"))
+
+(defun windu-auto-save-set-window-configuration-1()
+  "Intended to intercept the default binding for delete-other-windows. Save the current \
+   window configuration to 'windu-auto-save-window-configuration-1 and then continue \
+   executing delete-other-windows."
+  (interactive)
+  (windu-set-window-configuration 'windu-auto-save-window-configuration-1)
+  (delete-other-windows)
+  (message "Window configuration auto-saved."))
+
+(defun windu-auto-save-set-window-configuration-0()
+  "Intended to intercept the default binding for delete-window. Save the current \
+   window configuration to 'windu-auto-save-window-configuration-0 and then continue \
+   executing delete-other-windows."
+  (interactive)
+  (windu-set-window-configuration 'windu-auto-save-window-configuration-0)
+  (delete-window)
+  (message "Window configuration auto-saved."))
+
+(defun windu-auto-save-load-window-configuration-1 ()
+  "Load the window configuration stored in 'windu-auto-save-load-window-configuration-1, \
+   if one exists."
+  (interactive)
+  (windu-load-window-configuration windu-auto-save-window-configuration-1)
+  (message "Window configuration loaded"))
+
+(defun windu-auto-save-load-window-configuration-0 ()
+  "Load the window configuration stored in 'windu-auto-save-load-window-configuration-0, \
+   if one exists."
+  (interactive)
+  (windu-load-window-configuration windu-auto-save-window-configuration-0)
+  (message "Window configuration loaded"))
+
+(global-set-key (kbd "C-x 1") 'windu-auto-save-set-window-configuration-1)
+(global-set-key (kbd "C-x !") 'windu-auto-save-load-window-configuration-1)
+
+(global-set-key (kbd "C-x 0") 'windu-auto-save-set-window-configuration-0)
+(global-set-key (kbd "C-x )") 'windu-auto-save-load-window-configuration-0)
 
 (defun windu-setup-keybindings (&optional mode-prefix)
   "Set up keybinding for `windu-transient-mode` on MODE-PREFIX. Defaults to 'C-x C-m'."
