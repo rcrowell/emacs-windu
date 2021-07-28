@@ -51,16 +51,11 @@
             (define-key map (kbd "f") 'windu-order-fill-best-effort)
             (define-key map (kbd "w") 'windu-order-width-best-effort)
             (define-key map (kbd "h") 'windu-order-height-best-effort)
-            (define-key map (kbd "(") 'windu-order-fill-right)
-            (define-key map (kbd ")") 'windu-order-fill-left)
-            (define-key map (kbd "[") 'windu-order-width-right)
-            (define-key map (kbd "]") 'windu-order-width-left)
-            (define-key map (kbd "{") 'windu-order-height-bottom)
-            (define-key map (kbd "}") 'windu-order-height-top)
             ;; Splits / Group Orders
-            (define-key map (kbd "b") 'windu-split-window-best-effort)
-            (define-key map (kbd "r") 'windu-split-window-right)
-            (define-key map (kbd "l") 'windu-split-window-left)
+            (define-key map (kbd "2") 'windu-split-window-below)
+            (define-key map (kbd "3") 'windu-split-window-right)
+            (define-key map (kbd "r") 'windu-split-window-right-only)
+            (define-key map (kbd "l") 'windu-split-window-left-only)
             (define-key map (kbd "+") 'windu-order-fill-many-windows)
             ;; Swaps / Brings
             (define-key map (kbd ",") 'windu-swap-left)
@@ -71,15 +66,20 @@
             (define-key map (kbd "C-.") 'windu-bring-right)
             (define-key map (kbd "C-<") 'windu-bring-top)
             (define-key map (kbd "C->") 'windu-bring-bottom)
-            ;; Window Configuration
-            (define-key map (kbd "2") 'windu-set-window-configuration-2)
-            (define-key map (kbd "3") 'windu-set-window-configuration-3)
-            (define-key map (kbd "4") 'windu-set-window-configuration-4)
-            (define-key map (kbd "5") 'windu-set-window-configuration-5)
-            (define-key map (kbd "@") 'windu-load-window-configuration-2)
-            (define-key map (kbd "#") 'windu-load-window-configuration-3)
-            (define-key map (kbd "$") 'windu-load-window-configuration-4)
-            (define-key map (kbd "%") 'windu-load-window-configuration-5)
+            ;; Window Deletion
+            (define-key map (kbd "0") 'windu-delete-window)
+            (define-key map (kbd "1") 'windu-delete-other-windows)
+            (define-key map (kbd ")") 'windu-un-delete-window)
+            (define-key map (kbd "!") 'windu-un-delete-other-windows)
+            ;; Save/Local Window Configuration (for US keyboard users)
+            (define-key map (kbd "6") 'windu-set-save-quick-A)
+            (define-key map (kbd "7") 'windu-set-save-quick-B)
+            (define-key map (kbd "8") 'windu-set-save-quick-C)
+            (define-key map (kbd "9") 'windu-set-save-quick-D)
+            (define-key map (kbd "^") 'windu-load-quick-A)
+            (define-key map (kbd "&") 'windu-load-quick-B)
+            (define-key map (kbd "*") 'windu-load-quick-C)
+            (define-key map (kbd "(") 'windu-load-quick-D)
             ;; Info
             (define-key map (kbd "i") 'windu-echo-size)
             map)
@@ -191,29 +191,29 @@
 
 ;;; window configuration hotkeys
 
-(defvar windu-window-configuration-2 nil)
-(defvar windu-window-configuration-3 nil)
-(defvar windu-window-configuration-4 nil)
-(defvar windu-window-configuration-5 nil)
+(defvar windu-autosave-delete-window nil)
+(defvar windu-autosave-delete-other-windows nil)
+(defvar windu-save-quick-A nil)
+(defvar windu-save-quick-B nil)
+(defvar windu-save-quick-C nil)
+(defvar windu-save-quick-D nil)
 
-(defvar windu-auto-save-window-configuration-1 nil)
-(defvar windu-auto-save-window-configuration-0 nil)
-
-(defun windu-set-window-configuration(name)
-  "Save the current window configuration into name."
+(defun windu-set-window-configuration (name)
+  "Save the current window configuration into NAME."
   (set name (current-window-configuration))
   (message "Window configuration saved"))
 
-(defun windu-load-window-configuration(name)
-  "Load the window configuration corresponding to name."
-  (if name (progn (set-window-configuration name) (message "Window configuration loaded"))
+(defun windu-load-window-configuration (name)
+  "Load the window configuration corresponding to NAME."
+  (if name (progn (set-window-configuration name)
+                  (message "Window configuration loaded"))
     (message "Saved configuration not found")))
 
-;;; end-user interactive wrapper functions
+;;; user-callable interactive wrapper functions
 (defun windu-transient-activate ()
   "Begins a new nudge action."
   (interactive)
-  (message "Entering windu mode")
+  (message "Entering windu mode (windu-fill-width is %d)" (windu-fill-width))
   (windu-transient-mode 1))
 
 (defun windu-transient-abort ()
@@ -286,6 +286,18 @@
   (windu-set-width-right (windu-fill-width nil width))
   (windu-echo-size))
 
+(defun windu-order-height-top (height)
+  "Set current window height to HEIGHT by moving its top edge."
+  (interactive "nSet height: ")
+  (windu-set-height-top height)
+  (windu-echo-size))
+
+(defun windu-order-height-bottom (height)
+  "Set current window height to HEIGHT by moving its bottom edge."
+  (interactive "nSet height: ")
+  (windu-set-height-bottom height)
+  (windu-echo-size))
+
 (defun windu-order-width-best-effort (width)
   "Set current window width to WIDTH by first moving its right edge, then its left."
   (interactive "nSet width: ")
@@ -295,6 +307,15 @@
     (cond ((and (< (window-total-width nil) width) (window-in-direction 'left))
            (windu-set-width-left width)))
     (windu-echo-size)))
+
+(defun windu-order-height-best-effort (height)
+  "Set current window height to HEIGHT by first moving its bottom edge, then its top."
+  (interactive "nSet height: ")
+  (cond ((window-in-direction 'below)
+         (windu-set-height-bottom height)))
+  (cond ((and (< (window-total-height nil) height) (window-in-direction 'above))
+         (windu-set-height-top height)))
+  (windu-echo-size))
 
 (defun windu-order-fill-left ()
   "Set current window width to `fill-column` by moving its left edge."
@@ -317,7 +338,7 @@
   (balance-windows)
   (windu-fill-windows-right (window-at 0 0)))
 
-(defun windu-split-window-left ()
+(defun windu-split-window-left-only ()
   "Split current window side-by-side, moving the left edge as needed.
 After the split, both windows aim to have `windu-fill-column` width."
   (interactive)
@@ -328,7 +349,7 @@ After the split, both windows aim to have `windu-fill-column` width."
     (let ((new-window (split-window nil (- width) 'right)))
       (windu-echo-sizes nil other-window 'right))))
 
-(defun windu-split-window-right ()
+(defun windu-split-window-right-only ()
   "Split current window side-by-side, moving the right edge as needed.
 After the split, both windows aim to have `windu-fill-column` width."
   (interactive)
@@ -339,7 +360,7 @@ After the split, both windows aim to have `windu-fill-column` width."
     (let ((new-window (split-window nil width 'right)))
       (windu-echo-sizes nil new-window 'right))))
 
-(defun windu-split-window-best-effort ()
+(defun windu-split-window-right ()
   "Split current window side-by-side, moving the right and left edges as needed.
 After the split, both windows aim to have `windu-fill-column` width."
   (interactive)
@@ -350,6 +371,12 @@ After the split, both windows aim to have `windu-fill-column` width."
     (let ((new-window (split-window nil nil 'right)))
       (windu-order-width-right width)
       (windu-echo-sizes nil new-window 'right))))
+
+(defun windu-split-window-below ()
+  "Extend `split-window-below` by echoing the current window sizes afterward."
+  (interactive)
+  (let ((new-window (split-window-below)))
+    (windu-echo-sizes nil new-window 'below)))
 
 (defun windu-swap-left ()
   "Swap the buffer in the current window with the one on the left."
@@ -391,94 +418,107 @@ After the split, both windows aim to have `windu-fill-column` width."
   (interactive)
   (select-window (windu-swap-buffers-in-direction 'below)))
 
-;;; window configuration end-user interactive wrapper functions
-(defun windu-set-window-configuration-2 ()
-  "Save the current window configuration to 'windu-window-configuration-2."
+;;; window deletion interactive wrapper functions
+(defun windu-delete-window ()
+  "Extend `delete-window` by saving the current window configuration first."
   (interactive)
-  (windu-set-window-configuration 'windu-window-configuration-2))
-
-(defun windu-set-window-configuration-3 ()
-  "Save the current window configuration to 'windu-window-configuration-3."
-  (interactive)
-  (windu-set-window-configuration 'windu-window-configuration-3))
-
-(defun windu-set-window-configuration-4 ()
-  "Save the current window configuration to 'windu-window-configuration-4."
-  (interactive)
-  (windu-set-window-configuration 'windu-window-configuration-4))
-
-(defun windu-set-window-configuration-5 ()
-  "Save the current window configuration to 'windu-window-configuration-5."
-  (interactive)
-  (windu-set-window-configuration 'windu-window-configuration-5))
-
-(defun windu-load-window-configuration-2 ()
-  "Load the window configuration stored in 'windu-window-configuration-2, if one exists."
-  (interactive)
-  (windu-load-window-configuration windu-window-configuration-2)
-  (message "Window configuration loaded"))
-
-(defun windu-load-window-configuration-3 ()
-  "Load the window configuration stored in 'windu-window-configuration-3, if one exists."
-  (interactive)
-  (windu-load-window-configuration windu-window-configuration-3)
-  (message "Window configuration loaded"))
-
-(defun windu-load-window-configuration-4 ()
-  "Load the window configuration stored in 'windu-window-configuration-4, if one exists."
-  (interactive)
-  (windu-load-window-configuration windu-window-configuration-4)
-  (message "Window configuration loaded"))
-
-(defun windu-load-window-configuration-5 ()
-  "Load the window configuration stored in 'windu-window-configuration-5, if one exists."
-  (interactive)
-  (windu-load-window-configuration windu-window-configuration-5)
-  (message "Window configuration loaded"))
-
-(defun windu-auto-save-set-window-configuration-1()
-  "Intended to intercept the default binding for delete-other-windows. Save the current \
-   window configuration to 'windu-auto-save-window-configuration-1 and then continue \
-   executing delete-other-windows."
-  (interactive)
-  (windu-set-window-configuration 'windu-auto-save-window-configuration-1)
-  (delete-other-windows)
-  (message "Window configuration auto-saved."))
-
-(defun windu-auto-save-set-window-configuration-0()
-  "Intended to intercept the default binding for delete-window. Save the current \
-   window configuration to 'windu-auto-save-window-configuration-0 and then continue \
-   executing delete-other-windows."
-  (interactive)
-  (windu-set-window-configuration 'windu-auto-save-window-configuration-0)
+  (windu-set-window-configuration 'windu-autosave-delete-window)
   (delete-window)
-  (message "Window configuration auto-saved."))
+  (message "Undo via (windu-un-delete-window)"))
 
-(defun windu-auto-save-load-window-configuration-1 ()
-  "Load the window configuration stored in 'windu-auto-save-load-window-configuration-1, \
-   if one exists."
+(defun windu-delete-other-windows ()
+  "Extend `delete-other-windows` by saving the current window configuration first."
   (interactive)
-  (windu-load-window-configuration windu-auto-save-window-configuration-1)
+  (windu-set-window-configuration 'windu-autosave-delete-other-windows)
+  (delete-other-windows)
+  (message "Undo via (windu-un-delete-other-windows)"))
+
+(defun windu-un-delete-window ()
+  "Restore the window configuration saved via `windu-delete-window`, if any."
+  (interactive)
+  (windu-load-window-configuration windu-autosave-delete-window)
   (message "Window configuration loaded"))
 
-(defun windu-auto-save-load-window-configuration-0 ()
-  "Load the window configuration stored in 'windu-auto-save-load-window-configuration-0, \
-   if one exists."
+(defun windu-un-delete-other-windows ()
+  "Restore the window configuration saved via `windu-delete-other-windows`, if any."
   (interactive)
-  (windu-load-window-configuration windu-auto-save-window-configuration-0)
+  (windu-load-window-configuration windu-autosave-delete-other-windows)
   (message "Window configuration loaded"))
 
-(global-set-key (kbd "C-x 1") 'windu-auto-save-set-window-configuration-1)
-(global-set-key (kbd "C-x !") 'windu-auto-save-load-window-configuration-1)
-
-(global-set-key (kbd "C-x 0") 'windu-auto-save-set-window-configuration-0)
-(global-set-key (kbd "C-x )") 'windu-auto-save-load-window-configuration-0)
-
-(defun windu-setup-keybindings (&optional mode-prefix)
-  "Set up keybinding for `windu-transient-mode` on MODE-PREFIX. Defaults to 'C-x C-m'."
+;;; window configuration end-user interactive wrapper functions
+(defun windu-set-save-quick-A ()
+  "Save the current window configuration to 'windu-save-quick-A."
   (interactive)
-  (let ((mode-prefix (or mode-prefix (kbd "C-x C-x"))))
-    (global-set-key mode-prefix 'windu-transient-activate)))
+  (windu-set-window-configuration 'windu-save-quick-A))
+
+(defun windu-set-save-quick-B ()
+  "Save the current window configuration to 'windu-save-quick-B."
+  (interactive)
+  (windu-set-window-configuration 'windu-save-quick-B))
+
+(defun windu-set-save-quick-C ()
+  "Save the current window configuration to 'windu-save-quick-C."
+  (interactive)
+  (windu-set-window-configuration 'windu-save-quick-C))
+
+(defun windu-set-save-quick-D ()
+  "Save the current window configuration to 'windu-save-quick-D."
+  (interactive)
+  (windu-set-window-configuration 'windu-save-quick-D))
+
+(defun windu-load-quick-A ()
+  "Load the window configuration stored in 'windu-save-quick-A, if one exists."
+  (interactive)
+  (windu-load-window-configuration windu-save-quick-A)
+  (message "Window configuration loaded"))
+
+(defun windu-load-quick-B ()
+  "Load the window configuration stored in 'windu-save-quick-B, if one exists."
+  (interactive)
+  (windu-load-window-configuration windu-save-quick-B)
+  (message "Window configuration loaded"))
+
+(defun windu-load-quick-C ()
+  "Load the window configuration stored in 'windu-save-quick-C, if one exists."
+  (interactive)
+  (windu-load-window-configuration windu-save-quick-C)
+  (message "Window configuration loaded"))
+
+(defun windu-load-quick-D ()
+  "Load the window configuration stored in 'windu-save-quick-D, if one exists."
+  (interactive)
+  (windu-load-window-configuration windu-save-quick-D)
+  (message "Window configuration loaded"))
+
+;;; convenience keybinding setup functions
+
+(defun windu-setup-transient-keybindings (&optional mode-prefix)
+  "Set up keybinding for `windu-transient-mode` on MODE-PREFIX; defaults to 'C-x C-x'."
+  (interactive)
+  (let ((mode-prefix (or mode-prefix "C-x C-x")))
+    (global-set-key (kbd mode-prefix) 'windu-transient-activate)))
+
+(defun windu-setup-windmove-keybindings ()
+  "Set up keybindings to mirror windmove: '<C-S-up>' etc."
+  (interactive)
+  ;; windmove-like bring commands
+  (global-set-key (kbd "<C-S-left>") 'windu-bring-left)
+  (global-set-key (kbd "<C-S-right>") 'windu-bring-right)
+  (global-set-key (kbd "<C-S-up>") 'windu-bring-top)
+  (global-set-key (kbd "<C-S-down>") 'windu-bring-bottom))
+
+(defun windu-setup-global-keybindings ()
+  "Set up global wrappers for window manipulation at their usual keybindings."
+  ;; wrap 'delete-window, 'delete-other-windows
+  (global-set-key (kbd "C-x 0") 'windu-delete-window)
+  (global-set-key (kbd "C-x 1") 'windu-delete-other-windows)
+  (global-set-key (kbd "C-x )") 'windu-un-delete-window)
+  (global-set-key (kbd "C-x !") 'windu-un-delete-other-windows)
+  ;; wrap 'split-window-below, 'split-window-right, 'balance-windows
+  (global-set-key (kbd "C-x 2") 'windu-split-window-below)
+  (global-set-key (kbd "C-x 3") 'windu-split-window-right)
+  (global-set-key (kbd "C-x +") 'windu-order-fill-many-windows)
+)
 
 (provide 'windu)
 
